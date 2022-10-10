@@ -47,11 +47,11 @@ export class AppComponent implements OnInit {
   async ngOnInit() {
     let observable_data = []
 
-    observable_data.push(this.http.get(`../../zettaByteAngularTest/assets/corrector-list.json`))
-    observable_data.push(this.http.get(`../../zettaByteAngularTest/assets/school-corrector-list.json`))
-    observable_data.push(this.http.get(`../../zettaByteAngularTest/assets/school-list.json`))
-    observable_data.push(this.http.get(`../../zettaByteAngularTest/assets/school-table-list.json`))
-    observable_data.push(this.http.get(`../../zettaByteAngularTest/assets/students-table-list.json`))
+    observable_data.push(this.http.get(`../../zettaByteWebPage/assets/corrector-list.json`))
+    observable_data.push(this.http.get(`../../zettaByteWebPage/assets/school-corrector-list.json`))
+    observable_data.push(this.http.get(`../../zettaByteWebPage/assets/school-list.json`))
+    observable_data.push(this.http.get(`../../zettaByteWebPage/assets/school-table-list.json`))
+    observable_data.push(this.http.get(`../../zettaByteWebPage/assets/students-table-list.json`))
 
     forkJoin(...observable_data).subscribe((results: any) => {
       this.corrector_list = results[0]
