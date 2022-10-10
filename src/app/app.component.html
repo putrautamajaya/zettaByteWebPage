@@ -1,0 +1,183 @@
+<div style="width: 100%; padding: 30px; box-sizing: border-box;">
+  <div class="f-rss" style="width: 100%;">
+    <div style="width: 70%;">
+      <div class="f-ree">
+        <button mat-raised-button color="primary" (click)="resetFilter()">Reset Filter</button>
+      </div>
+
+      <table mat-table [dataSource]="display_data" class="mat-elevation-z8" style="width: 100%;">
+        <ng-container matColumnDef="student_name">
+          <th mat-header-cell *matHeaderCellDef>
+            <div>Students</div>
+            <mat-form-field appearance="standard">
+              <input type="text" matInput (keyup)="filterData()" [(ngModel)]="search_student">
+            </mat-form-field>
+          </th>
+          <td mat-cell *matCellDef="let element"> {{element.student_name.last_name + ' ' +
+            element.student_name.first_name}}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="origin">
+          <th mat-header-cell *matHeaderCellDef>
+            <div>School Origin</div>
+            <mat-form-field appearance="standard">
+              <input type="text" matInput [matAutocomplete]="auto" [value]="search_school_origin">
+              <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete"
+                (optionSelected)="search_school_origin = $event.option.value.short_name; filterData()">
+                <mat-option *ngFor="let option of getSelectedSchoolOrigin()" [value]="option">
+                  {{option?.short_name || ''}}
+                </mat-option>
+              </mat-autocomplete>
+              <button *ngIf="search_school_origin !== ''" matSuffix mat-icon-button aria-label="Clear"
+                (click)="search_school_origin=''; filterData()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-form-field>
+          </th>
+          <td mat-cell *matCellDef="let element"> {{element.origin.short_name}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="school_correcting">
+          <th mat-header-cell *matHeaderCellDef>
+            <div>School Correcting</div>
+            <mat-form-field appearance="standard">
+              <input type="text" matInput [matAutocomplete]="auto" [value]="search_school_correcting">
+              <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete"
+                (optionSelected)="search_school_correcting = $event.option.value.short_name; filterData()">
+                <mat-option *ngFor="let option of getSelectedSchoolCorrecting()" [value]="option">
+                  {{option?.short_name || ''}}
+                </mat-option>
+              </mat-autocomplete>
+              <button *ngIf="search_school_correcting !== ''" matSuffix mat-icon-button aria-label="Clear"
+                (click)="search_school_correcting=''; filterData()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-form-field>
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <mat-form-field appearance="standard">
+              <input type="text" placeholder="Pick one" matInput [matAutocomplete]="auto"
+                [value]="element.school_correcting.short_name ?? ''">
+              <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete"
+                (optionSelected)="element.school_correcting = $event.option.value">
+                <mat-option *ngFor="let option of getAvailableSchool(element.origin._id)" [value]="option">
+                  {{option.short_name}}
+                </mat-option>
+              </mat-autocomplete>
+              <button *ngIf="element.school_correcting !== ''" matSuffix mat-icon-button aria-label="Clear"
+                (click)="element.school_correcting=''">
+                <mat-icon>close</mat-icon>
+              </button>
+              <button matSuffix mat-icon-button>
+                <mat-icon>expand_more</mat-icon>
+              </button>
+            </mat-form-field>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="cross_corrector">
+          <th mat-header-cell *matHeaderCellDef>
+            <div>Cross Connector</div>
+            <mat-form-field appearance="standard">
+              <input type="text" matInput [matAutocomplete]="auto" [value]="search_school_corrector">
+              <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete"
+                (optionSelected)="search_school_corrector = $event.option.value.full_name; filterData()">
+                <mat-option *ngFor="let option of getSelectedCorrector()" [value]="option">
+                  {{option?.full_name || ''}}
+                </mat-option>
+              </mat-autocomplete>
+              <button *ngIf="search_school_corrector !== ''" matSuffix mat-icon-button aria-label="Clear"
+                (click)="search_school_corrector=''; filterData()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-form-field>
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <mat-form-field appearance="standard">
+              <input type="text" placeholder="Pick one" matInput [matAutocomplete]="auto"
+                [value]="element.cross_corrector.full_name ?? ''">
+              <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete"
+                (optionSelected)="element.cross_corrector = $event.option.value; updateRightTableData()">
+                <mat-option *ngFor="let option of getAvailableCorrector(element.school_correcting._id)"
+                  [value]="option">
+                  {{option.full_name}}
+                </mat-option>
+              </mat-autocomplete>
+              <button *ngIf="element.cross_corrector !== ''" matSuffix mat-icon-button aria-label="Clear"
+                (click)="element.cross_corrector=''">
+                <mat-icon>close</mat-icon>
+              </button>
+              <button matSuffix mat-icon-button>
+                <mat-icon>expand_more</mat-icon>
+              </button>
+            </mat-form-field>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <mat-toolbar style="background-color: white;">
+        <mat-toolbar-row>
+          <div class="mat-paginator-range-label" style="font-size: 12px; margin: 0; color: rgba(0,0,0,.54);">
+            {{dataSource?.length || 0}} total / {{totalAssigned}} remain to be assigned</div>
+          <span class="example-spacer" style=""></span>
+          <mat-paginator #paginator [length]="filtered_data?.length || 0" pageSize="10" hidePageSize
+            aria-label="Select page" (page)="onPageChange($event)"></mat-paginator>
+        </mat-toolbar-row>
+      </mat-toolbar>
+    </div>
+
+    <div style="width: 30%; padding-left: 20px; box-sizing: border-box;">
+      <table mat-table [dataSource]="right_table_data" class="mat-elevation-z8" style="width: 100%;">
+        <ng-container matColumnDef="school">
+          <th mat-header-cell *matHeaderCellDef>
+            <div>Schools</div>
+          </th>
+          <td mat-cell *matCellDef="let element">
+            {{element.short_name}}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="students">
+          <th mat-header-cell *matHeaderCellDef>
+            <div>Students</div>
+          </th>
+          <td mat-cell *matCellDef="let element">
+            {{element.student_count}}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="correction">
+          <th mat-header-cell *matHeaderCellDef>
+            <div>Correction</div>
+          </th>
+          <td mat-cell *matCellDef="let element">
+            {{element.correction_count}}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="diff">
+          <th mat-header-cell *matHeaderCellDef>
+            <div>Diff</div>
+          </th>
+          <td mat-cell *matCellDef="let element">
+            {{element.diff}}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="right_table_colums"></tr>
+        <tr mat-row *matRowDef="let row; columns: right_table_colums;"></tr>
+      </table>
+
+      <mat-toolbar style="background-color: white;">
+        <mat-toolbar-row>
+          <div class="mat-paginator-range-label" style="font-size: 12px; margin: 0; color: rgba(0,0,0,.54);">
+            {{right_table_data?.length || 0}} total</div>
+        </mat-toolbar-row>
+      </mat-toolbar>
+    </div>
+  </div>
+</div>
